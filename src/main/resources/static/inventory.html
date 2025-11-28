@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Purchases - Bites Restaurant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Same professional styling as other pages */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; padding: 20px;
+        }
+        .container {
+            max-width: 1400px; margin: 0 auto;
+            background: white; border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            color: white; padding: 30px; text-align: center;
+        }
+        .content { padding: 40px; }
+        .form-section { background: #f8fafc; padding: 30px; border-radius: 15px; margin-bottom: 30px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-top: 30px; }
+        .analytics-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .stat { display: flex; justify-content: space-between; margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 10px; }
+        .stat-value { font-size: 1.8em; font-weight: 700; color: #10b981; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        th { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px 16px; }
+        /* ... rest of styles same as before */
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📦 Inventory Purchases</h1>
+        <p>Record purchases and analyze usage - Bites Restaurant</p>
+    </div>
+    <div class="content">
+        <div class="form-section">
+            <h2 style="color: #1e293b; margin-bottom: 25px;">➕ Record Purchase</h2>
+            <form id="purchaseForm">
+                <div class="form-grid">
+                    <div>
+                        <label>Date</label>
+                        <input type="date" id="purchaseDate" required>
+                    </div>
+                    <div>
+                        <label>Item Name</label>
+                        <input type="text" id="itemName" placeholder="e.g. Basmati Rice" required>
+                    </div>
+                    <div>
+                        <label>Quantity</label>
+                        <input type="number" step="0.001" id="quantity" required>
+                    </div>
+                    <div>
+                        <label>Price/Unit (₹)</label>
+                        <input type="number" step="0.01" id="pricePerUnit" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">💾 Record Purchase</button>
+            </form>
+        </div>
+
+        <div class="form-section">
+            <h2 style="color: #1e293b; margin-bottom: 20px;">📊 Item Analytics</h2>
+            <div class="form-grid">
+                <div>
+                    <label>Item Name</label>
+                    <input type="text" id="analyticsItem" placeholder="Enter item name">
+                </div>
+                <div>
+                    <label>From Date</label>
+                    <input type="date" id="analyticsFrom">
+                </div>
+                <div>
+                    <label>To Date</label>
+                    <input type="date" id="analyticsTo">
+                </div>
+                <div style="align-self: end;">
+                    <button id="getAnalyticsBtn" class="btn btn-primary">Analyze Item ➡️</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="analyticsResults" style="display: none;">
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3 id="analyticsItemTitle"></h3>
+                    <div class="stat">
+                        <span>Total Purchased</span>
+                        <span class="stat-value" id="totalPurchasedQty">-</span>
+                    </div>
+                    <div class="stat">
+                        <span>Total Cost</span>
+                        <span class="stat-value" id="totalCost">-</span>
+                    </div>
+                    <div class="stat" style="background: #d1fae5;">
+                        <span>Quantity Used</span>
+                        <span class="stat-value" id="quantityUsed" style="color: #059669;">-</span>
+                    </div>
+                    <div class="stat" style="background: #d1fae5;">
+                        <span>Cost Used</span>
+                        <span class="stat-value" id="costUsed" style="color: #059669;">-</span>
+                    </div>
+                </div>
+                <div class="analytics-card">
+                    <h3>Purchase History</h3>
+                    <table id="purchaseHistoryTable">
+                        <thead>
+                        <tr><th>Date</th><th>Qty</th><th>Price/Unit</th><th>Total Cost</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const apiBase = '/api/inventory';
+
+    // Record purchase
+    document.getElementById('purchaseForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const body = {
+            purchaseDate: document.getElementById('purchaseDate').value,
+            itemName: document.getElementById('itemName').value,
+            quantity: parseFloat(document.getElementById('quantity').value),
+            pricePerUnit: parseFloat(document.getElementById('pricePerUnit').value)
+        };
+
+        const res = await fetch(`${apiBase}/purchases`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+
+        if (res.ok) {
+            alert('✅ Purchase recorded!');
+            document.getElementById('purchaseForm').reset();
+        }
+    });
+
+    // Analytics
+    document.getElementById('getAnalyticsBtn').addEventListener('click', async () => {
+        const itemName = document.getElementById('analyticsItem').value.trim();
+        const from = document.getElementById('analyticsFrom').value;
+        const to = document.getElementById('analyticsTo').value;
+
+        if (!itemName || !from || !to) {
+            alert('❌ Please fill all analytics fields');
+            return;
+        }
+
+        const res = await fetch(`${apiBase}/analytics/${encodeURIComponent(itemName)}?from=${from}&to=${to}`);
+        const analytics = await res.json();
+
+        document.getElementById('analyticsItemTitle').textContent = analytics.itemName;
+        document.getElementById('totalPurchasedQty').textContent = analytics.totalQuantityPurchased.toFixed(2);
+        document.getElementById('totalCost').textContent = '₹' + analytics.totalCost.toFixed(2);
+        document.getElementById('quantityUsed').textContent = analytics.quantityUsed.toFixed(2);
+        document.getElementById('costUsed').textContent = '₹' + analytics.costUsed.toFixed(2);
+
+        const tbody = document.querySelector('#purchaseHistoryTable tbody');
+        tbody.innerHTML = '';
+        analytics.purchases.forEach(p => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${p.date}</td>
+                <td>${p.quantity.toFixed(2)}</td>
+                <td>₹${p.pricePerUnit.toFixed(2)}</td>
+                <td>₹${p.totalCost.toFixed(2)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('analyticsResults').style.display = 'block';
+    });
+
+    // Set default dates
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    document.getElementById('purchaseDate').value = today.toISOString().split('T')[0];
+    document.getElementById('analyticsFrom').value = firstDay.toISOString().split('T')[0];
+    document.getElementById('analyticsTo').value = today.toISOString().split('T')[0];
+</script>
+</body>
+</html>

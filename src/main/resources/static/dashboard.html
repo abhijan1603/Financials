@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bites Restaurant Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- GLOBAL STYLES --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            min-height: 85vh;
+        }
+
+        /* --- NAVIGATION TABS --- */
+        .nav-tabs { display: flex; background: #fff; border-bottom: 2px solid #e2e8f0; padding: 0 20px; }
+        .nav-item {
+            padding: 20px 30px; cursor: pointer; font-weight: 600; color: #64748b;
+            border-bottom: 3px solid transparent; transition: all 0.3s;
+        }
+        .nav-item:hover { color: #FF8E53; background: #fff7ed; }
+        .nav-item.active { color: #ea580c; border-bottom: 3px solid #ea580c; }
+
+        /* --- CONTENT AREAS --- */
+        .tab-content { display: none; padding: 30px; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- SHARED STYLES --- */
+        h2 { color: #1e293b; margin-bottom: 20px; font-weight: 700; border-left: 5px solid #FF8E53; padding-left: 15px; }
+        .form-section { background: #f8fafc; padding: 25px; border-radius: 15px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+        label { font-weight: 500; color: #475569; display: block; margin-bottom: 8px; font-size: 0.9em; }
+        input, select {
+            width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0;
+            border-radius: 8px; font-size: 15px; background: white;
+        }
+        input:focus, select:focus { outline: none; border-color: #FF8E53; }
+
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, #FF8E53, #FE6B8B); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,142,83,0.3); }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-action { background: #8b5cf6; color: white; padding: 6px 12px; font-size: 13px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th { background: #f1f5f9; color: #475569; padding: 12px; text-align: left; font-size: 14px; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+        tr:hover { background: #fff7ed; }
+
+        /* Invoice Summary */
+        .invoice-summary { background: #fff7ed; padding: 20px; border-radius: 10px; margin-top: 20px; text-align: right; border: 1px dashed #FF8E53; }
+        .summary-row { display: flex; justify-content: flex-end; margin-bottom: 8px; font-size: 0.95em; color: #475569; }
+        .summary-row span { width: 120px; display: inline-block; }
+        .summary-total { font-size: 1.5em; font-weight: 700; color: #ea580c; margin-top: 10px; padding-top: 10px; border-top: 2px solid #fdba74; }
+
+        /* Inventory Fields */
+        .inventory-fields-wrapper { grid-column: 1 / -1; background: #fff7ed; padding: 20px; border-radius: 10px; border: 1px dashed #FF8E53; display: none; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .stat-value { font-size: 2em; font-weight: 700; color: #1e293b; margin-top: 10px; }
+        .profit-pos { color: #059669; } .profit-neg { color: #dc2626; }
+
+        /* --- CUSTOM DISH DROPDOWN STYLES --- */
+        .dish-search-wrapper { position: relative; }
+        .dish-dropdown-list {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: white; border: 1px solid #e2e8f0; border-radius: 8px;
+            max-height: 250px; overflow-y: auto; z-index: 100;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .dish-dropdown-item {
+            display: flex; align-items: center; padding: 10px;
+            cursor: pointer; border-bottom: 1px solid #f1f5f9;
+        }
+        .dish-dropdown-item:hover { background: #fff7ed; }
+        .dish-thumb {
+            width: 40px; height: 40px; border-radius: 5px; object-fit: cover;
+            margin-right: 12px; background: #eee;
+        }
+        .dish-info { flex-grow: 1; }
+        .dish-name-text { font-weight: 600; font-size: 14px; color: #334155; }
+        .dish-price-text { font-size: 12px; color: #059669; font-weight: 700; }
+        .dish-cat-tag { font-size: 10px; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; margin-left: 5px; color: #64748b; }
+
+        @media (max-width: 768px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="background: linear-gradient(135deg, #FF8E53, #FE6B8B); padding: 20px; color: white;">
+        <h1 style="margin:0;">Bites Restaurant Manager</h1>
+        <p style="opacity: 0.9; font-size: 0.9em;">Jamshedpur Unit | Integrated System</p>
+    </div>
+
+    <div class="nav-tabs">
+        <div class="nav-item active" onclick="switchTab('sales')">1. GST Sales</div>
+        <div class="nav-item" onclick="switchTab('inventory')">2. Stock Audit</div>
+        <div class="nav-item" onclick="switchTab('expenses')">3. Expenses & Buying</div>
+        <div class="nav-item" onclick="switchTab('reports')">4. Monthly P&L</div>
+    </div>
+
+    <!-- TAB 1: SALES -->
+    <div id="tab-sales" class="tab-content active">
+        <h2>New Sales Invoice</h2>
+        <div class="form-section">
+            <div class="grid-4">
+                <div><label>Customer Name</label><input type="text" id="custName" placeholder="Walk-in"></div>
+                <div><label>Mobile No</label><input type="tel" id="custMobile" placeholder="999-999-9999"></div>
+                <div><label>Bill Date & Time</label><input type="datetime-local" id="billDate"></div>
+                <div><label>GST Rate (%)</label><input type="number" id="gstRate" value="5" oninput="calcSalesTotal()"></div>
+            </div>
+            <div class="grid-3" style="margin-top: 15px;">
+                <div><label>Order Type</label><select id="orderType"><option value="Dine-in">Dine-in</option><option value="Takeaway">Takeaway</option><option value="Delivery">Delivery</option></select></div>
+                <div><label>Payment Mode</label><select id="paymentMode"><option value="Cash">Cash</option><option value="UPI">UPI / QR Code</option><option value="Card">Card</option><option value="Due">Due / Credit</option></select></div>
+                <div><label>Table No (Optional)</label><input type="text" id="tableNo" placeholder="e.g. T4"></div>
+            </div>
+        </div>
+
+        <h3 style="margin-top:20px; font-size:1.1em; color:#64748b;">Ordered Dishes</h3>
+        <table id="salesTable">
+            <thead>
+            <tr><th style="width:40%;">Dish Name</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Total</th><th>Action</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button onclick="addSalesRow()" class="btn btn-secondary" style="margin-top:10px;">+ Add Dish</button>
+
+        <div class="invoice-summary">
+            <div class="summary-row">Item Subtotal: <span id="s-subtotal">0.00</span></div>
+            <div class="summary-row">Discount (₹): <span style="width: auto;"><input type="number" id="s-discount" value="0" style="width: 100px; padding: 4px; text-align: right;" oninput="calcSalesTotal()"></span></div>
+            <div class="summary-row" style="font-weight: 600; color: #334155;">Taxable Value: <span id="s-taxable">0.00</span></div>
+            <div class="summary-row">GST (<span id="s-gst-lbl">5</span>%): <span id="s-gst">0.00</span></div>
+            <div class="summary-row" style="color: #64748b;">Round Off: <span id="s-round">0.00</span></div>
+            <div class="summary-total">Net Payable: ₹<span id="s-payable">0.00</span></div>
+            <button onclick="submitInvoice()" class="btn btn-primary" style="margin-top:15px; width: 200px;">Save & Print Bill</button>
+        </div>
+    </div>
+
+    <!-- TAB 2: INVENTORY -->
+    <div id="tab-inventory" class="tab-content">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>Current Stock Status (Audit)</h2>
+            <button onclick="loadInventory()" class="btn btn-secondary">Refresh List</button>
+        </div>
+        <div class="form-section">
+            <h3>+ Add New Master Item</h3>
+            <div class="grid-4">
+                <input type="text" id="newItemName" placeholder="Item Name (e.g. Rice)">
+                <select id="newItemUnit"><option value="KG">KG</option><option value="GM">GM</option><option value="LTR">LTR</option><option value="PC">PC</option></select>
+                <input type="number" id="newReorder" placeholder="Alert Level">
+                <button onclick="createNewItem()" class="btn btn-primary">Create</button>
+            </div>
+        </div>
+        <table id="inventoryTable">
+            <thead><tr><th>ID</th><th>Name</th><th>Base Unit</th><th>Physical Stock</th><th>Est. Value/Unit</th><th>Action</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- TAB 3: EXPENSES -->
+    <div id="tab-expenses" class="tab-content">
+        <h2>Record Expense / Purchase</h2>
+        <form id="expenseForm" class="form-section">
+            <div class="grid-2">
+                <div><label>Date</label><input type="date" id="expDate" required></div>
+                <div><label>Category</label><select id="expCategory" onchange="toggleInvFields()" required><option value="Rent">Rent</option><option value="Salary">Salary</option><option value="Electricity">Electricity</option><option value="Marketing">Marketing</option><option value="Inventory">Inventory (Raw Material)</option><option value="Misc">Misc</option></select></div>
+            </div>
+            <div style="margin-top:15px;"><label>Description / Item Name</label><input type="text" id="expDesc" placeholder="Description" required></div>
+            <div id="invFields" class="inventory-fields-wrapper">
+                <label style="color:#ea580c; font-weight:bold;">Inventory Purchase Details</label>
+                <div class="grid-3">
+                    <div><label>Qty</label><input type="number" step="0.001" id="invQty" oninput="calcExpAmount()"></div>
+                    <div><label>Unit</label><select id="invUnit"><option value="KG">Kg</option><option value="GM">gm</option><option value="PACKETS">Packets</option><option value="BOTTLES">Bottles</option></select></div>
+                    <div><label>Rate (₹)</label><input type="number" step="0.01" id="invRate" oninput="calcExpAmount()"></div>
+                </div>
+            </div>
+            <div style="margin-top:15px;"><label>Total Amount (₹)</label><input type="number" id="expAmount" step="0.01" required></div>
+            <button type="submit" class="btn btn-primary" style="margin-top:15px; width:100%;">Save Record</button>
+        </form>
+        <div class="form-section">
+            <div class="grid-3" style="align-items:end;">
+                <div><label>From</label><input type="date" id="expFrom"></div>
+                <div><label>To</label><input type="date" id="expTo"></div>
+                <button onclick="loadExpenses()" class="btn btn-secondary">Load Records</button>
+            </div>
+        </div>
+        <table id="expensesTable"><thead><tr><th>Date</th><th>Category/Item</th><th>Desc</th><th>Amount</th><th>Inv Details</th><th>Action</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <!-- TAB 4: REPORTS -->
+    <div id="tab-reports" class="tab-content">
+        <h2>Monthly Profit & Loss</h2>
+        <div class="grid-3" style="margin-bottom:30px; align-items:end;">
+            <div><label>Start Date</label><input type="date" id="repFrom"></div>
+            <div><label>End Date</label><input type="date" id="repTo"></div>
+            <button onclick="loadReport()" class="btn btn-primary">Generate P&L</button>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><h3>Total Sales</h3><div class="stat-value" style="color:#059669;" id="repSales">₹0</div></div>
+            <div class="stat-card"><h3>GST Collected</h3><div class="stat-value" style="color:#64748b;" id="repGst">₹0</div></div>
+            <div class="stat-card"><h3>Op. Expenses</h3><div class="stat-value" style="color:#dc2626;" id="repExp">₹0</div></div>
+            <div class="stat-card"><h3>Inv. Purchased</h3><div class="stat-value" style="color:#d97706;" id="repInv">₹0</div></div>
+            <div class="stat-card" style="border:2px solid #1e293b;"><h3>Net Profit</h3><div class="stat-value" id="repProfit">₹0</div></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = '/api';
+
+    // --- MENU DATA (PARSED FROM USER TEXT) ---
+    // Using placehold.co for reliable images. In production, host these.
+    const MENU_DB = [
+        { cat: "Snacks", name: "French Fries", rate: 80, img: "https://placehold.co/50x50/ffa500/fff?text=Fries" },
+        { cat: "Snacks", name: "Cheese Balls (8pcs)", rate: 160, img: "https://placehold.co/50x50/ffcc00/fff?text=Cheese" },
+        { cat: "Snacks", name: "Masala Cheese Balls", rate: 180, img: "https://placehold.co/50x50/ff6600/fff?text=Spicy" },
+        { cat: "Snacks", name: "Potato Twister", rate: 60, img: "https://placehold.co/50x50/cc9900/fff?text=Potato" },
+        { cat: "Soup", name: "Hot & Sour Soup (Veg)", rate: 50, img: "https://placehold.co/50x50/cc3300/fff?text=Soup" },
+        { cat: "Soup", name: "Hot & Sour Soup (Chicken)", rate: 70, img: "https://placehold.co/50x50/cc3300/fff?text=ChkSoup" },
+        { cat: "Soup", name: "Sweet Corn Soup (Veg)", rate: 50, img: "https://placehold.co/50x50/ffcc00/fff?text=Corn" },
+        { cat: "Soup", name: "Sweet Corn Soup (Chicken)", rate: 70, img: "https://placehold.co/50x50/ffcc00/fff?text=ChkCorn" },
+        { cat: "Soup", name: "Manchow Soup (Veg)", rate: 50, img: "https://placehold.co/50x50/993300/fff?text=Manchow" },
+        { cat: "Soup", name: "Manchow Soup (Chicken)", rate: 70, img: "https://placehold.co/50x50/993300/fff?text=ChkMan" },
+        { cat: "Breakfast", name: "Maggi", rate: 40, img: "https://placehold.co/50x50/ffcc00/fff?text=Maggi" }, // Assumed rate
+        { cat: "Breakfast", name: "Omlet", rate: 30, img: "https://placehold.co/50x50/ffcc00/fff?text=Egg" },
+        { cat: "Breakfast", name: "Spanish Omlette", rate: 40, img: "https://placehold.co/50x50/ffcc00/fff?text=Span" },
+        { cat: "Breakfast", name: "Cheese Omlet", rate: 50, img: "https://placehold.co/50x50/ffcc00/fff?text=ChzEgg" },
+        { cat: "Breakfast", name: "Corn Cheese Special Omlet", rate: 60, img: "https://placehold.co/50x50/ffcc00/fff?text=CornEgg" },
+        { cat: "Breakfast", name: "Chole Bature", rate: 40, img: "https://placehold.co/50x50/cc6600/fff?text=Chole" },
+        { cat: "Rolls", name: "Veg Roll", rate: 35, img: "https://placehold.co/50x50/009933/fff?text=VRoll" },
+        { cat: "Rolls", name: "Egg Roll", rate: 40, img: "https://placehold.co/50x50/cc9900/fff?text=ERoll" },
+        { cat: "Rolls", name: "Double Egg Roll", rate: 50, img: "https://placehold.co/50x50/cc9900/fff?text=2Egg" },
+        { cat: "Rolls", name: "Paneer Roll", rate: 60, img: "https://placehold.co/50x50/ff9966/fff?text=PRoll" },
+        { cat: "Rolls", name: "Chicken Roll", rate: 80, img: "https://placehold.co/50x50/cc3300/fff?text=CRoll" },
+        { cat: "Rolls", name: "Double Egg Single Chicken Roll", rate: 100, img: "https://placehold.co/50x50/cc3300/fff?text=MixRoll" },
+        { cat: "Rolls", name: "Double Egg Double Chicken Roll", rate: 120, img: "https://placehold.co/50x50/cc3300/fff?text=MegaRoll" },
+        { cat: "Sandwich", name: "Cheese Grill Sandwich", rate: 40, img: "https://placehold.co/50x50/ffcc00/fff?text=Sand" },
+        { cat: "Sandwich", name: "Veg Cheese Grill Sandwich", rate: 60, img: "https://placehold.co/50x50/009933/fff?text=VegSand" },
+        { cat: "Sandwich", name: "Paneer Cheese Grill Sandwich", rate: 60, img: "https://placehold.co/50x50/ff9966/fff?text=PanSand" },
+        { cat: "Sandwich", name: "Chicken Cheese Grill Sandwich", rate: 70, img: "https://placehold.co/50x50/cc3300/fff?text=ChkSand" },
+        { cat: "Sandwich", name: "Chicken Cheese Corn Sandwich", rate: 80, img: "https://placehold.co/50x50/cc3300/fff?text=CornSand" },
+        { cat: "Starter Veg", name: "Chilly Paneer", rate: 120, img: "https://placehold.co/50x50/cc3300/fff?text=Paneer" },
+        { cat: "Starter Veg", name: "Veg Manchurian (Dry/Gravy)", rate: 80, img: "https://placehold.co/50x50/009933/fff?text=Manch" },
+        { cat: "Starter Veg", name: "Chilli Babycorn", rate: 120, img: "https://placehold.co/50x50/ffff00/fff?text=Corn" },
+        { cat: "Starter Veg", name: "Chilli Mushroom", rate: 120, img: "https://placehold.co/50x50/996633/fff?text=Mush" },
+        { cat: "Starter Veg", name: "Veg Tandoori Momo", rate: 80, img: "https://placehold.co/50x50/cc3300/fff?text=Momo" },
+        { cat: "Starter NonVeg", name: "Chilly Chicken (Half)", rate: 80, img: "https://placehold.co/50x50/cc3300/fff?text=Chilly" },
+        { cat: "Starter NonVeg", name: "Chilly Chicken (Full)", rate: 160, img: "https://placehold.co/50x50/cc3300/fff?text=Chilly" },
+        { cat: "Starter NonVeg", name: "Chicken Manchurian (Half)", rate: 80, img: "https://placehold.co/50x50/993300/fff?text=Manch" },
+        { cat: "Starter NonVeg", name: "Chicken Manchurian (Full)", rate: 160, img: "https://placehold.co/50x50/993300/fff?text=Manch" },
+        { cat: "Starter NonVeg", name: "Chicken 65 (Half)", rate: 80, img: "https://placehold.co/50x50/cc0000/fff?text=65" },
+        { cat: "Starter NonVeg", name: "Chicken 65 (Full)", rate: 160, img: "https://placehold.co/50x50/cc0000/fff?text=65" },
+        { cat: "Starter NonVeg", name: "Chicken Lollipop (6pcs)", rate: 160, img: "https://placehold.co/50x50/cc0000/fff?text=Lolli" },
+        { cat: "Starter NonVeg", name: "Chicken Tandoori Momo", rate: 100, img: "https://placehold.co/50x50/cc3300/fff?text=TMomo" },
+        { cat: "Main Course", name: "Veg Biryani", rate: 120, img: "https://placehold.co/50x50/009933/fff?text=Biryani" },
+        { cat: "Main Course", name: "Chicken Biryani (Half)", rate: 170, img: "https://placehold.co/50x50/cc3300/fff?text=Biryani" },
+        { cat: "Main Course", name: "Chicken Biryani (Full)", rate: 280, img: "https://placehold.co/50x50/cc3300/fff?text=Biryani" },
+        { cat: "Main Course", name: "Mutton Dum Biryani", rate: 250, img: "https://placehold.co/50x50/660000/fff?text=Mutton" },
+        { cat: "Main Course", name: "Butter Chicken", rate: 210, img: "https://placehold.co/50x50/ff9933/fff?text=Butter" },
+        { cat: "Main Course", name: "Chicken Kadhai", rate: 210, img: "https://placehold.co/50x50/cc3300/fff?text=Kadhai" },
+        { cat: "Main Course", name: "Chicken Dehati (Full)", rate: 330, img: "https://placehold.co/50x50/660000/fff?text=Dehati" },
+        { cat: "Breads", name: "Tandoori Roti", rate: 20, img: "https://placehold.co/50x50/cc9966/fff?text=Roti" },
+        { cat: "Breads", name: "Butter Roti", rate: 15, img: "https://placehold.co/50x50/cc9966/fff?text=BRoti" },
+        { cat: "Breads", name: "Plain Naan", rate: 15, img: "https://placehold.co/50x50/cc9966/fff?text=Naan" },
+        { cat: "Breads", name: "Butter Naan", rate: 20, img: "https://placehold.co/50x50/cc9966/fff?text=BNaan" },
+        { cat: "Breads", name: "Lacha Paratha", rate: 25, img: "https://placehold.co/50x50/cc9966/fff?text=Lacha" },
+        { cat: "Thali", name: "Veg Thali", rate: 65, img: "https://placehold.co/50x50/009933/fff?text=Thali" },
+        { cat: "Thali", name: "Chicken Thali", rate: 100, img: "https://placehold.co/50x50/cc3300/fff?text=CThali" },
+        { cat: "Thali", name: "Mutton Thali", rate: 180, img: "https://placehold.co/50x50/660000/fff?text=MThali" },
+        { cat: "Desert", name: "Ice Cream (Amul)", rate: 40, img: "https://placehold.co/50x50/ffccff/fff?text=Ice" }
+    ];
+
+    window.onload = function() {
+        // Init dates
+        const today = new Date().toISOString().split('T')[0];
+        const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('billDate').value = now.toISOString().slice(0,16);
+        document.getElementById('expDate').value = today;
+        document.getElementById('expTo').value = today;
+        document.getElementById('repTo').value = today;
+        const d = new Date(); d.setDate(1);
+        document.getElementById('expFrom').value = d.toISOString().split('T')[0];
+        document.getElementById('repFrom').value = d.toISOString().split('T')[0];
+        addSalesRow();
+    };
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+        if(tabId === 'inventory') loadInventory();
+    }
+
+    // --- CUSTOM DROPDOWN LOGIC ---
+    let currentInput = null;
+
+    function addSalesRow() {
+        const tbody = document.querySelector('#salesTable tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <div class="dish-search-wrapper">
+                    <input type="text" placeholder="Search Dish..." class="s-name"
+                        onfocus="showDropdown(this)" onkeyup="filterDishes(this)" onblur="delayHideDropdown(this)" autocomplete="off">
+                    <div class="dish-dropdown-list"></div>
+                </div>
+            </td>
+            <td><input type="number" value="1" class="s-qty" oninput="calcSalesTotal()"></td>
+            <td><input type="text" value="PLATE" class="s-unit"></td>
+            <td><input type="number" value="0" class="s-rate" oninput="calcSalesTotal()"></td>
+            <td>₹<span class="s-total">0.00</span></td>
+            <td><button class="btn-danger" style="padding:4px 8px;" onclick="this.parentElement.parentElement.remove(); calcSalesTotal()">X</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function showDropdown(input) {
+        // Close others
+        document.querySelectorAll('.dish-dropdown-list').forEach(el => el.style.display = 'none');
+        const list = input.nextElementSibling;
+        renderDropdownItems(list, MENU_DB); // Show all initially
+        list.style.display = 'block';
+    }
+
+    function filterDishes(input) {
+        const term = input.value.toLowerCase();
+        const list = input.nextElementSibling;
+        const filtered = MENU_DB.filter(d => d.name.toLowerCase().includes(term));
+        renderDropdownItems(list, filtered, input);
+    }
+
+    function renderDropdownItems(container, items, inputRef) {
+        container.innerHTML = '';
+        if (items.length === 0) {
+            container.innerHTML = '<div style="padding:10px; color:#999;">No dish found</div>';
+            return;
+        }
+        items.forEach(dish => {
+            const div = document.createElement('div');
+            div.className = 'dish-dropdown-item';
+            div.innerHTML = `
+                <img src="${dish.img}" class="dish-thumb">
+                <div class="dish-info">
+                    <div class="dish-name-text">${dish.name} <span class="dish-cat-tag">${dish.cat}</span></div>
+                    <div class="dish-price-text">₹${dish.rate}</div>
+                </div>
+            `;
+            // Mouse down prevents blur from firing before click
+            div.onmousedown = function(e) { e.preventDefault(); selectDish(inputRef, dish); };
+            container.appendChild(div);
+        });
+    }
+
+    function selectDish(input, dish) {
+        const tr = input.closest('tr');
+        input.value = dish.name;
+        tr.querySelector('.s-rate').value = dish.rate;
+        input.nextElementSibling.style.display = 'none'; // Hide dropdown
+        calcSalesTotal();
+    }
+
+    function delayHideDropdown(input) {
+        setTimeout(() => { input.nextElementSibling.style.display = 'none'; }, 200);
+    }
+
+    // --- SALES CALCULATIONS ---
+    function calcSalesTotal() {
+        let subtotal = 0;
+        document.querySelectorAll('#salesTable tbody tr').forEach(tr => {
+            const qty = parseFloat(tr.querySelector('.s-qty').value) || 0;
+            const rate = parseFloat(tr.querySelector('.s-rate').value) || 0;
+            const total = qty * rate;
+            tr.querySelector('.s-total').innerText = total.toFixed(2);
+            subtotal += total;
+        });
+
+        const discount = parseFloat(document.getElementById('s-discount').value) || 0;
+        const taxable = Math.max(0, subtotal - discount);
+        const gstRate = parseFloat(document.getElementById('gstRate').value) || 0;
+        document.getElementById('s-gst-lbl').innerText = gstRate;
+        const gstAmt = taxable * (gstRate / 100);
+        const exactTotal = taxable + gstAmt;
+        const roundedTotal = Math.round(exactTotal);
+        const roundOffAmt = roundedTotal - exactTotal;
+
+        document.getElementById('s-subtotal').innerText = subtotal.toFixed(2);
+        document.getElementById('s-taxable').innerText = taxable.toFixed(2);
+        document.getElementById('s-gst').innerText = gstAmt.toFixed(2);
+        document.getElementById('s-round').innerText = (roundOffAmt > 0 ? '+' : '') + roundOffAmt.toFixed(2);
+        document.getElementById('s-payable').innerText = roundedTotal.toFixed(2);
+    }
+
+    async function submitInvoice() {
+        const items = [];
+        document.querySelectorAll('#salesTable tbody tr').forEach(tr => {
+            items.push({
+                dishName: tr.querySelector('.s-name').value,
+                quantity: parseFloat(tr.querySelector('.s-qty').value),
+                unit: tr.querySelector('.s-unit').value,
+                rate: parseFloat(tr.querySelector('.s-rate').value),
+                lineTotal: parseFloat(tr.querySelector('.s-total').innerText)
+            });
+        });
+
+        const payload = {
+            customerName: document.getElementById('custName').value || 'Walk-in',
+            customerMobile: document.getElementById('custMobile').value,
+            billDateTime: document.getElementById('billDate').value,
+            orderType: document.getElementById('orderType').value,
+            paymentMode: document.getElementById('paymentMode').value,
+            gstRate: parseFloat(document.getElementById('gstRate').value),
+            subTotal: parseFloat(document.getElementById('s-subtotal').innerText),
+            discount: parseFloat(document.getElementById('s-discount').value),
+            taxableAmount: parseFloat(document.getElementById('s-taxable').innerText),
+            gstAmount: parseFloat(document.getElementById('s-gst').innerText),
+            roundOffAmount: parseFloat(document.getElementById('s-round').innerText),
+            totalAmount: parseFloat(document.getElementById('s-payable').innerText),
+            items: items
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/sales`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                alert('Invoice Saved Successfully!');
+                document.querySelector('#salesTable tbody').innerHTML = '';
+                addSalesRow();
+                document.getElementById('s-discount').value = 0;
+                document.getElementById('custName').value = '';
+                document.getElementById('custMobile').value = '';
+                calcSalesTotal();
+            } else alert('Error saving invoice.');
+        } catch(e) { console.error(e); alert('Backend error or Offline.'); }
+    }
+
+    // --- OTHER TABS LOGIC (UNCHANGED) ---
+    async function loadInventory() {
+        try {
+            const res = await fetch(`${API_BASE}/inventory-items`);
+            const data = await res.json();
+            const tbody = document.querySelector('#inventoryTable tbody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${item.id}</td><td>${item.name}</td><td>${item.baseUnit}</td><td><input type="number" value="${item.currentStock}" id="stock-${item.id}" style="width:80px"></td><td><input type="number" value="${item.avgPurchasePricePerBaseUnit}" id="val-${item.id}" style="width:80px"></td><td><button class="btn-action" onclick="updateStock(${item.id})">Update</button></td>`;
+                tbody.appendChild(tr);
+            });
+        } catch(e) {}
+    }
+
+    async function createNewItem() {
+        const body = { name: document.getElementById('newItemName').value, baseUnit: document.getElementById('newItemUnit').value, reorderLevel: parseFloat(document.getElementById('newReorder').value), currentStock: 0, avgPurchasePricePerBaseUnit: 0 };
+        await fetch(`${API_BASE}/inventory-items`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)});
+        loadInventory();
+    }
+
+    async function updateStock(id) {
+        const stock = parseFloat(document.getElementById(`stock-${id}`).value);
+        const val = parseFloat(document.getElementById(`val-${id}`).value);
+        await fetch(`${API_BASE}/inventory-items/${id}/state`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ currentStock: stock, avgPurchasePricePerBaseUnit: val }) });
+        alert('Stock Updated');
+    }
+
+    function toggleInvFields() {
+        const cat = document.getElementById('expCategory').value;
+        const fields = document.getElementById('invFields');
+        const amt = document.getElementById('expAmount');
+        if(cat === 'Inventory') { fields.style.display = 'block'; amt.readOnly = true; amt.style.backgroundColor = '#f1f5f9'; }
+        else { fields.style.display = 'none'; amt.readOnly = false; amt.style.backgroundColor = '#fff'; }
+    }
+
+    function calcExpAmount() {
+        if(document.getElementById('expCategory').value === 'Inventory') {
+            const qty = parseFloat(document.getElementById('invQty').value) || 0;
+            const rate = parseFloat(document.getElementById('invRate').value) || 0;
+            document.getElementById('expAmount').value = (qty * rate).toFixed(2);
+        }
+    }
+
+    document.getElementById('expenseForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const cat = document.getElementById('expCategory').value;
+        let desc = document.getElementById('expDesc').value;
+        const amt = parseFloat(document.getElementById('expAmount').value);
+        if(cat === 'Inventory') {
+            const qty = document.getElementById('invQty').value;
+            const unit = document.getElementById('invUnit').value;
+            const rate = document.getElementById('invRate').value;
+            desc = `Inventory: ${desc} | Qty: ${qty} ${unit} | Rate: ${rate}`;
+        }
+        const body = { expenseDate: document.getElementById('expDate').value, category: cat, description: desc, amount: amt };
+        const res = await fetch(`${API_BASE}/expenses`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+        if(res.ok) { alert('Saved'); document.getElementById('expenseForm').reset(); toggleInvFields(); }
+    });
+
+    async function loadExpenses() {
+        const from = document.getElementById('expFrom').value;
+        const to = document.getElementById('expTo').value;
+        const res = await fetch(`${API_BASE}/expenses?from=${from}&to=${to}`);
+        const data = await res.json();
+        const tbody = document.querySelector('#expensesTable tbody');
+        tbody.innerHTML = '';
+        data.forEach(exp => { tbody.innerHTML += `<tr><td>${exp.expenseDate}</td><td>${exp.category}</td><td>${exp.description}</td><td>₹${exp.amount}</td><td>-</td><td>-</td></tr>`; });
+    }
+
+    async function loadReport() {
+        const from = document.getElementById('repFrom').value;
+        const to = document.getElementById('repTo').value;
+        try {
+            const res = await fetch(`${API_BASE}/reports/monthly?from=${from}&to=${to}`);
+            const data = await res.json();
+            document.getElementById('repSales').innerText = `₹${data.totalSales.toFixed(2)}`;
+            document.getElementById('repGst').innerText = `₹${data.totalGst.toFixed(2)}`;
+            document.getElementById('repExp').innerText = `₹${data.totalExpenses.toFixed(2)}`;
+            document.getElementById('repInv').innerText = `₹${(data.inventoryCost || 0).toFixed(2)}`;
+            const profit = data.profit;
+            const el = document.getElementById('repProfit');
+            el.innerText = `₹${profit.toFixed(2)}`;
+            el.className = profit >= 0 ? 'stat-value profit-pos' : 'stat-value profit-neg';
+        } catch(e) { alert('Report generation failed. Ensure backend ReportService is running.'); }
+    }
+</script>
+
+</body>
+</html>

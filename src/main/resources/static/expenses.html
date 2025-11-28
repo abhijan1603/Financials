@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expenses - Bites Restaurant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); /* Orange Theme */
+            min-height: 100vh;
+            padding: 20px;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #FF8E53, #FE6B8B);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 { font-size: 2.2em; font-weight: 700; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+
+        .content { padding: 40px; }
+
+        /* Form Styling */
+        .form-section {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid #e2e8f0;
+        }
+
+        h2 { color: #1e293b; margin-bottom: 25px; font-weight: 700; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        label { font-weight: 500; color: #475569; display: block; margin-bottom: 8px; font-size: 0.95em; }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #FF8E53;
+            box-shadow: 0 0 0 3px rgba(255,142,83,0.1);
+        }
+
+        /* Inventory Specific Fields */
+        .inventory-fields-wrapper {
+            grid-column: 1 / -1; /* Span full width */
+            background: #fff7ed;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px dashed #FF8E53;
+            display: none; /* Hidden by default */
+            margin-top: 10px;
+        }
+
+        .inventory-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FF8E53, #FE6B8B);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(255,142,83,0.3); }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-secondary:hover { background: #475569; }
+
+        /* Controls Section */
+        .date-controls {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        th {
+            background: linear-gradient(135deg, #FF8E53, #FE6B8B);
+            color: white;
+            padding: 18px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            font-size: 15px;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #fff7ed; }
+
+        .amount-col { font-weight: 700; color: #059669; }
+        .inv-qty-col { color: #d97706; font-weight: 500; }
+
+        .analyse-btn {
+            background: #8b5cf6;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+        }
+        .analyse-btn:hover { background: #7c3aed; }
+
+        @media (max-width: 768px) {
+            .form-grid, .inventory-row, .date-controls { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Expenses Management</h1>
+        <p>Bites Restaurant, Jamshedpur</p>
+    </div>
+
+    <div class="content">
+        <!-- Record Expense Form -->
+        <div class="form-section">
+            <h2>+ Record Expense</h2>
+            <form id="expenseForm">
+                <div class="form-grid">
+                    <div>
+                        <label>Date</label>
+                        <input type="date" id="expenseDate" required>
+                    </div>
+                    <div>
+                        <label>Category</label>
+                        <select id="category" required>
+                            <option value="">Select Category</option>
+                            <option value="Rent">Rent</option>
+                            <option value="Salary">Salary</option>
+                            <option value="Electricity">Electricity</option>
+                            <option value="Gas">Gas</option>
+                            <option value="Water">Water</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Inventory">Inventory (Raw Materials)</option>
+                            <option value="Misc">Miscellaneous</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Description / Item Name</label>
+                        <input type="text" id="description" placeholder="e.g. Monthly Rent or 'Tomato'" required>
+                    </div>
+                    <div>
+                        <label>Amount (₹)</label>
+                        <input type="number" step="0.01" id="amount" placeholder="0.00" required>
+                    </div>
+
+                    <!-- Inventory Specific Fields (Hidden by default) -->
+                    <div id="inventoryFields" class="inventory-fields-wrapper">
+                        <label style="color: #ea580c; font-weight: 700; margin-bottom: 15px;">Inventory Details</label>
+                        <div class="inventory-row">
+                            <div>
+                                <label>Quantity</label>
+                                <input type="number" step="0.001" id="invQuantity" placeholder="0">
+                            </div>
+                            <div>
+                                <label>Unit</label>
+                                <select id="invUnit">
+                                    <option value="KG">Kg</option>
+                                    <option value="GM">gm</option>
+                                    <option value="PACKETS">Packets</option>
+                                    <option value="BOTTLES">Bottles</option>
+                                    <option value="PIECES">Pieces</option>
+                                    <option value="LTR">Litre</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Rate per Unit (₹)</label>
+                                <input type="number" step="0.01" id="invRate" placeholder="0.00">
+                            </div>
+                        </div>
+                        <p style="font-size: 13px; color: #6b7280; margin-top: 10px;">
+                            ℹ️ Amount will be calculated automatically: <strong>Quantity × Rate</strong>
+                        </p>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Expense</button>
+            </form>
+        </div>
+
+        <!-- View Expenses Table -->
+        <div class="date-controls">
+            <div style="flex-grow: 1;">
+                <label>From Date</label>
+                <input type="date" id="fromDate">
+            </div>
+            <div style="flex-grow: 1;">
+                <label>To Date</label>
+                <input type="date" id="toDate">
+            </div>
+            <button id="loadExpensesBtn" class="btn btn-secondary">Load Expenses</button>
+        </div>
+
+        <table id="expensesTable">
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Category / Item</th>
+                <th>Description</th>
+                <th>Amount (₹)</th>
+                <th>Inv. Qty</th>
+                <th>Inv. Cost</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Rows will be populated by JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const expensesApi = '/api/expenses';
+
+    // Set default dates (Current Month)
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    document.getElementById('expenseDate').value = today.toISOString().split('T')[0];
+    document.getElementById('fromDate').value = firstDay.toISOString().split('T')[0];
+    document.getElementById('toDate').value = today.toISOString().split('T')[0];
+
+    // --- 1. Toggle Inventory Fields ---
+    const categorySelect = document.getElementById('category');
+    const invFields = document.getElementById('inventoryFields');
+    const amountInput = document.getElementById('amount');
+    const invQtyInput = document.getElementById('invQuantity');
+    const invRateInput = document.getElementById('invRate');
+
+    categorySelect.addEventListener('change', (e) => {
+        if (e.target.value === 'Inventory') {
+            invFields.style.display = 'block';
+            amountInput.readOnly = true; // Prevent manual edit for inventory
+            amountInput.style.backgroundColor = '#f3f4f6';
+        } else {
+            invFields.style.display = 'none';
+            amountInput.readOnly = false;
+            amountInput.style.backgroundColor = 'white';
+        }
+    });
+
+    // --- 2. Auto-Calculate Amount for Inventory ---
+    function updateInventoryAmount() {
+        const qty = parseFloat(invQtyInput.value) || 0;
+        const rate = parseFloat(invRateInput.value) || 0;
+        if (categorySelect.value === 'Inventory') {
+            amountInput.value = (qty * rate).toFixed(2);
+        }
+    }
+    invQtyInput.addEventListener('input', updateInventoryAmount);
+    invRateInput.addEventListener('input', updateInventoryAmount);
+
+
+    // --- 3. Submit Expense ---
+    document.getElementById('expenseForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const category = categorySelect.value;
+        const descriptionRaw = document.getElementById('description').value;
+        let finalDescription = descriptionRaw;
+        let finalAmount = parseFloat(amountInput.value);
+
+        // Validation for Inventory
+        if (category === 'Inventory') {
+            const qty = parseFloat(invQtyInput.value);
+            const unit = document.getElementById('invUnit').value;
+            const rate = parseFloat(invRateInput.value);
+
+            if (!qty || !rate || qty <= 0 || rate <= 0) {
+                alert('Please enter valid Quantity and Rate for Inventory items.');
+                return;
+            }
+            // Format: "Inventory: Tomato | Qty: 5 KG | Rate: 40"
+            finalDescription = `Inventory: ${descriptionRaw} | Qty: ${qty} ${unit} | Rate: ${rate}`;
+        }
+
+        const body = {
+            expenseDate: document.getElementById('expenseDate').value,
+            category: category,
+            description: finalDescription,
+            amount: finalAmount
+        };
+
+        try {
+            const res = await fetch(expensesApi, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                alert('Expense Saved Successfully!');
+                document.getElementById('expenseForm').reset();
+                // Reset defaults
+                document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+                invFields.style.display = 'none';
+                amountInput.readOnly = false;
+                amountInput.style.backgroundColor = 'white';
+            } else {
+                alert('Failed to save expense.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Error connecting to server.');
+        }
+    });
+
+    // --- 4. Load & Aggregation Logic ---
+
+    // Helper to parse inventory string
+    function parseInventoryStr(desc) {
+        if (!desc.startsWith('Inventory:')) return null;
+        try {
+            // "Inventory: Tomato | Qty: 5 KG | Rate: 40"
+            const parts = desc.split('|');
+            const name = parts[0].replace('Inventory:', '').trim();
+            const qtyPart = parts[1].replace('Qty:', '').trim().split(' '); // ["5", "KG"]
+            const qty = parseFloat(qtyPart[0]);
+            const unit = qtyPart[1] || '';
+            return { name, qty, unit };
+        } catch (e) {
+            return null;
+        }
+    }
+
+    document.getElementById('loadExpensesBtn').addEventListener('click', async () => {
+        const from = document.getElementById('fromDate').value;
+        const to = document.getElementById('toDate').value;
+
+        try {
+            const res = await fetch(`${expensesApi}?from=${from}&to=${to}`);
+            const data = await res.json();
+            const tbody = document.querySelector('#expensesTable tbody');
+            tbody.innerHTML = '';
+
+            // Separation logic
+            const inventoryItems = {}; // Map: "Tomato" -> { totalQty, totalCost, unit, count }
+            const otherExpenses = [];
+
+            data.forEach(exp => {
+                if (exp.category === 'Inventory') {
+                    const parsed = parseInventoryStr(exp.description);
+                    if (parsed) {
+                        const key = parsed.name.toLowerCase(); // Case insensitive grouping
+                        if (!inventoryItems[key]) {
+                            inventoryItems[key] = {
+                                name: parsed.name,
+                                totalQty: 0,
+                                totalCost: 0,
+                                unit: parsed.unit,
+                                ids: []
+                            };
+                        }
+                        inventoryItems[key].totalQty += parsed.qty;
+                        inventoryItems[key].totalCost += exp.amount;
+                        inventoryItems[key].ids.push(exp.id);
+                    } else {
+                        // Fallback if parsing fails
+                        otherExpenses.push(exp);
+                    }
+                } else {
+                    otherExpenses.push(exp);
+                }
+            });
+
+            // 1. Render Normal Expenses
+            otherExpenses.forEach(exp => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${exp.expenseDate}</td>
+                    <td>${exp.category}</td>
+                    <td>${exp.description}</td>
+                    <td class="amount-col">₹${exp.amount.toFixed(2)}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td><button class="analyse-btn" style="background:#ccc; cursor:default;">-</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 2. Render Aggregated Inventory Items
+            Object.values(inventoryItems).forEach(item => {
+                const tr = document.createElement('tr');
+                // Use the 'To' date as reference or just "Range"
+                tr.innerHTML = `
+                    <td>${from} to ${to}</td>
+                    <td style="color:#ea580c; font-weight:600;">Inventory - ${item.name}</td>
+                    <td>Aggregated (${item.ids.length} entries)</td>
+                    <td class="amount-col">₹${item.totalCost.toFixed(2)}</td>
+                    <td class="inv-qty-col">${item.totalQty.toFixed(2)} ${item.unit}</td>
+                    <td class="inv-qty-col">₹${item.totalCost.toFixed(2)}</td>
+                    <td>
+                        <button class="analyse-btn" onclick="analyseItem('${item.name}', ${item.totalQty}, '${item.unit}', ${item.totalCost})">
+                            Analyse
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+        } catch (error) {
+            console.error(error);
+            alert('Error loading expenses');
+        }
+    });
+
+    // --- 5. Analyse Function ---
+    window.analyseItem = function(name, qty, unit, cost) {
+        alert(`📊 ANALYSIS FOR: ${name}\n\nTotal Quantity Used: ${qty} ${unit}\nTotal Cost: ₹${cost.toFixed(2)}\n\n(In selected date range)`);
+    };
+
+</script>
+
+</body>
+</html>
