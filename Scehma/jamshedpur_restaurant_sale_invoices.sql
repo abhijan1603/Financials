@@ -1,0 +1,61 @@
+-- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
+--
+-- Host: localhost    Database: jamshedpur_restaurant
+-- ------------------------------------------------------
+-- Server version	8.0.42
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `sale_invoices`
+--
+
+DROP TABLE IF EXISTS `sale_invoices`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sale_invoices` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `customer_name` varchar(255) DEFAULT NULL,
+  `gst_amount` decimal(15,2) NOT NULL,
+  `gst_rate` decimal(5,2) NOT NULL,
+  `invoice_date_time` datetime(6) NOT NULL,
+  `taxable_amount` decimal(15,2) NOT NULL,
+  `total_amount` decimal(15,2) NOT NULL,
+  `customer_mobile` varchar(255) DEFAULT NULL,
+  `discount` decimal(15,2) DEFAULT NULL,
+  `order_type` varchar(255) DEFAULT NULL,
+  `payment_mode` varchar(255) DEFAULT NULL,
+  `round_off_amount` decimal(5,2) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sale_invoices`
+--
+
+LOCK TABLES `sale_invoices` WRITE;
+/*!40000 ALTER TABLE `sale_invoices` DISABLE KEYS */;
+INSERT INTO `sale_invoices` VALUES (1,'Chandu',11.00,5.00,'2025-11-28 13:23:08.765601',220.00,231.00,NULL,NULL,NULL,NULL,NULL),(2,'Chandu',18.50,5.00,'2025-11-28 13:59:54.199736',370.00,388.50,NULL,NULL,NULL,NULL,NULL),(3,'Chandu',6.00,5.00,'2025-11-28 18:23:11.652389',120.00,126.00,NULL,NULL,NULL,NULL,NULL),(4,'Walk-in',18.00,5.00,'2025-11-28 18:43:50.018544',360.00,378.00,NULL,NULL,NULL,NULL,NULL),(5,'Chandra Shekhar',31.00,5.00,'2025-11-28 20:28:25.553712',620.00,651.00,'9119436221',0.00,'Dine-in','Cash',0.00),(6,'Sima',23.50,5.00,'2025-11-28 21:24:16.394335',470.00,494.00,'8585858585',0.00,'Takeaway','Cash',0.50),(7,'Chandra Shekhar77',12.00,5.00,'2025-11-28 22:24:56.052962',240.00,252.00,'7777777',0.00,'Dine-in','Cash',0.00),(8,'John',24.00,5.00,'2025-11-28 22:31:40.655655',480.00,504.00,'7845215242',0.00,'Dine-in','UPI',0.00),(9,'Test',14.00,5.00,'2025-11-28 22:38:05.347790',280.00,294.00,'7890987890',0.00,'Dine-in','Cash',0.00),(10,'wer',18.00,5.00,'2025-11-28 22:38:38.084074',360.00,378.00,'2345676789',0.00,'Dine-in','Cash',0.00),(11,'Ram',13.50,5.00,'2025-11-28 22:41:52.892590',270.00,284.00,'9653215314',0.00,'Dine-in','UPI',0.50),(12,'Order 999',15.50,5.00,'2025-11-28 22:57:13.225901',310.00,326.00,'8888888888',0.00,'Dine-in','Cash',0.50),(13,'Swapnil',20.50,5.00,'2025-11-28 23:20:08.750239',410.00,431.00,'7777777777',0.00,'Takeaway','Cash',0.50),(14,'Timbak Tu',22.50,5.00,'2025-11-29 00:09:40.182735',450.00,473.00,'6985423158',0.00,'Takeaway','UPI',0.50),(15,'Tanya',28.50,5.00,'2025-11-29 00:12:29.178146',570.00,599.00,'3245621320',0.00,'Dine-in','Cash',0.50),(16,'Suman',22.00,5.00,'2025-11-29 00:14:38.103258',440.00,462.00,'7845821452',0.00,'Dine-in','Cash',0.00);
+/*!40000 ALTER TABLE `sale_invoices` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2025-11-29 12:38:44
